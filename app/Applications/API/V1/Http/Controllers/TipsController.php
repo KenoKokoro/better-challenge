@@ -6,9 +6,11 @@ namespace V1\Http\Controllers;
 
 use App\Http\Controllers\JsonController;
 use App\Modules\Response\Json\JsonResponseFactory;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse as IlluminateJsonResponse;
 use V1\Services\Tip\Requests\IndexRequest;
+use V1\Services\Tip\Requests\NewRequest;
 use V1\Services\Tip\TipService;
 
 class TipsController extends JsonController
@@ -18,10 +20,16 @@ class TipsController extends JsonController
      */
     private $service;
 
-    public function __construct(TipService $service, JsonResponseFactory $response)
+    /**
+     * @var DatabaseManager
+     */
+    private $database;
+
+    public function __construct(TipService $service, JsonResponseFactory $response, DatabaseManager $database)
     {
         parent::__construct($response);
         $this->service = $service;
+        $this->database = $database;
     }
 
     /**
@@ -44,10 +52,27 @@ class TipsController extends JsonController
      */
     public function show(string $uuid): IlluminateJsonResponse
     {
+        try {
+            $tip = $this->service->show($uuid);
+
+            return $this->response()->ok('', ['result' => $tip->toArray()]);
+        } catch (ModelNotFoundException $exception) {
+            return $this->response()->notFound($exception->getMessage());
+        }
     }
 
-    public function store()
+    /**
+     * @param NewRequest $request
+     * @return IlluminateJsonResponse
+     * @throws \Exception
+     */
+    public function store(NewRequest $request): IlluminateJsonResponse
     {
+        $this->database->beginTransaction();
+        $tip = $this->service->store($request);
+        $this->database->commit();
+
+        return $this->response()->created('', ['result' => $tip->toArray()]);
     }
 
     public function update(string $uuid)

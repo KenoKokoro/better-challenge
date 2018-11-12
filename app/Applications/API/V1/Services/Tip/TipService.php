@@ -8,6 +8,7 @@ use App\DAL\Contracts\TipRepository;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use V1\Services\Tip\Requests\IndexRequest;
+use V1\Services\Tip\Requests\NewRequest;
 
 class TipService
 {
@@ -38,11 +39,23 @@ class TipService
     }
 
     /**
+     * Single representation of tips. Throws an exception if guid not found in database
      * @param string $uuid
      * @return Arrayable
      * @throws ModelNotFoundException
      */
     public function show(string $uuid): Arrayable
     {
+        return $this->repository->show($uuid);
+    }
+
+    /**
+     * Save new request to database as tip
+     * @param NewRequest $request
+     * @return Arrayable
+     */
+    public function store(NewRequest $request): Arrayable
+    {
+        return $this->repository->create($request->validated());
     }
 }

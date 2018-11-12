@@ -4,8 +4,10 @@
 namespace App\DAL;
 
 
+use App\Models\Base\UuidModel;
 use App\Modules\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 interface UuidRepository
 {
@@ -25,4 +27,19 @@ interface UuidRepository
      * @return Paginator
      */
     public function paginate(int $page, int $perPage = 20, array $columns = ['*']): Paginator;
+
+    /**
+     * Single model representation
+     * @param string $uuid
+     * @return UuidModel
+     * @throws ModelNotFoundException
+     */
+    public function show(string $uuid): UuidModel;
+
+    /**
+     * Store new entity to database
+     * @param array $attributes
+     * @return UuidModel
+     */
+    public function create(array $attributes): UuidModel;
 }

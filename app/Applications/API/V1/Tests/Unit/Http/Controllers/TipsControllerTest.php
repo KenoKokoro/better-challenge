@@ -7,12 +7,14 @@ namespace V1\Tests\Unit\Http\Controllers;
 use App\DAL\Contracts\TipRepository;
 use App\Models\Tip;
 use App\Modules\Pagination\Paginator;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Mockery\MockInterface;
 use Tests\TestCase;
 use V1\Http\Controllers\TipsController;
 use V1\Services\Tip\Requests\IndexRequest;
+use V1\Services\Tip\Requests\NewRequest;
 
 class TipsControllerTest extends TestCase
 {
@@ -20,6 +22,11 @@ class TipsControllerTest extends TestCase
      * @var MockInterface
      */
     private $repository;
+
+    /**
+     * @var MockInterface
+     */
+    private $db;
 
     /**
      * @var TipsController
@@ -30,6 +37,7 @@ class TipsControllerTest extends TestCase
     {
         parent::setUp();
         $this->repository = $this->newMock(TipRepository::class);
+        $this->db = $this->newMock(DatabaseManager::class);
         $this->controller = app(TipsController::class);
     }
 
@@ -59,6 +67,18 @@ class TipsControllerTest extends TestCase
         $this->assertEquals(200, $response->status());
     }
 
+    /**
+     * @expectedException \Illuminate\Validation\ValidationException
+     * @test
+     */
+    public function tip_pagination_requires_additional_parameters_in_order_to_return_paginated_results(): void
+    {
+        $request = new IndexRequest(['paginate' => 1, 'perPage' => null, 'page' => -1]);
+        $request->setContainer($this->app);
+
+        $this->controller->index($request);
+    }
+
     /** @test */
     public function not_found_response_should_be_returned_if_tip_does_not_exists_in_database(): void
     {
@@ -78,5 +98,51 @@ class TipsControllerTest extends TestCase
         $response = $this->controller->show('existing-uuid');
 
         $this->assertEquals(200, $response->status());
+    }
+
+    /**
+     * @expectedException \Illuminate\Validation\ValidationException
+     * @test
+     */
+    public function data_is_required_in_order_to_store_new_tip(): void
+    {
+        $request = new NewRequest();
+        $request->setContainer($this->app);
+        
+        $this->db->shouldReceive('beginTransaction')->once();
+
+        $this->controller->store($request);
+    }
+
+    /**
+     * @expectedException \Illuminate\Validation\ValidationException
+     * @test
+     */
+    public function valid_data_is_required_in_order_to_store_new_tip(): void
+    {
+        $request = new NewRequest(['title' => str_random(256), 'description' => str_random(1001)]);
+        $request->setContainer($this->app);
+
+        $this->db->shouldReceive('beginTransaction')->once();
+
+        $this->controller->store($request);
+    }
+
+    /** @test */
+    public function tip_should_be_stored_if_valid_data_is_provided(): void
+    {
+        $request = new NewRequest(['title' => 'Hello World', 'description' => 'Hello from description as well']);
+        $request->setContainer($this->app);
+
+        $this->db->shouldReceive('beginTransaction')->once();
+        $this->repository->shouldReceive('create')->with([
+            'title' => 'Hello World',
+            'description' => 'Hello from description as well'
+        ])->once()->andReturn(new Tip());
+        $this->db->shouldReceive('commit')->once();
+
+        $response = $this->controller->store($request);
+
+        $this->assertEquals(201, $response->status());
     }
 }

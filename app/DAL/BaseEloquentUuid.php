@@ -9,7 +9,7 @@ use App\Modules\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
-class BaseEloquentUuid implements UuidRepository
+abstract class BaseEloquentUuid implements UuidRepository
 {
     /**
      * @var UuidModel|Builder
@@ -35,6 +35,16 @@ class BaseEloquentUuid implements UuidRepository
     public function paginate(int $page, int $perPage = 20, array $columns = ['*']): Paginator
     {
         return new Paginator($this->newQuery()->paginate($perPage, $columns, 'page', $page), request());
+    }
+
+    public function show(string $uuid): UuidModel
+    {
+        return $this->newQuery()->findOrFail($uuid);
+    }
+
+    public function create(array $attributes): UuidModel
+    {
+        return $this->newQuery()->create($attributes);
     }
 
     /**
