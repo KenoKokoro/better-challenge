@@ -8,14 +8,14 @@ use Illuminate\Http\JsonResponse as IlluminateJsonResponse;
 
 class JsonFactory implements JsonResponseFactory
 {
-    public function ok(?string $message, array $append = []): IlluminateJsonResponse
+    public function ok(array $append = [], string $message = null): IlluminateJsonResponse
     {
         $data = $this->buildResponseData($message ?? 'Successfully executed.', $append);
 
         return $this->instance($data, IlluminateJsonResponse::HTTP_OK);
     }
 
-    public function created(?string $message, array $append = []): IlluminateJsonResponse
+    public function created(array $append = [], string $message = null): IlluminateJsonResponse
     {
         $data = $this->buildResponseData($message ?? 'Successfully created.', $append);
 
@@ -29,7 +29,7 @@ class JsonFactory implements JsonResponseFactory
         return $this->instance($data, IlluminateJsonResponse::HTTP_FORBIDDEN);
     }
 
-    public function unprocessableEntity(?string $message, array $append = []): IlluminateJsonResponse
+    public function unprocessableEntity(array $append = [], string $message = null): IlluminateJsonResponse
     {
         $data = $this->buildResponseData($message ?? 'Unprocessable entity.', $append);
 

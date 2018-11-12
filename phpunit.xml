@@ -12,6 +12,9 @@
         <testsuite name="V1Unit">
             <directory suffix="Test.php">./app/Applications/API/V1/Tests/Unit</directory>
         </testsuite>
+        <testsuite name="V1Feature">
+            <directory suffix="Test.php">./app/Applications/API/V1/Tests/Feature</directory>
+        </testsuite>
     </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">

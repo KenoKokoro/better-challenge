@@ -45,7 +45,7 @@ class TipsController extends JsonController
     {
         $items = $this->service->index($request);
 
-        return $this->response()->ok('', ['result' => $items->toArray()]);
+        return $this->response()->ok(['result' => $items->toArray()]);
     }
 
     /**
@@ -58,7 +58,7 @@ class TipsController extends JsonController
         try {
             $tip = $this->service->show($uuid);
 
-            return $this->response()->ok('', ['result' => $tip->toArray()]);
+            return $this->response()->ok(['result' => $tip->toArray()]);
         } catch (ModelNotFoundException $exception) {
             return $this->response()->notFound($exception->getMessage());
         }
@@ -76,7 +76,7 @@ class TipsController extends JsonController
         $tip = $this->service->store($request);
         $this->database->commit();
 
-        return $this->response()->created('', ['result' => $tip->toArray()]);
+        return $this->response()->created(['result' => $tip->toArray()]);
     }
 
     /**
@@ -95,7 +95,7 @@ class TipsController extends JsonController
             $updated = $this->service->update($tip, $request);
             $this->database->commit();
 
-            return $this->response()->ok('', ['result' => $updated->toArray()]);
+            return $this->response()->ok(['result' => $updated->toArray()]);
         } catch (ModelNotFoundException $exception) {
             return $this->response()->notFound($exception->getMessage());
         }
@@ -116,7 +116,7 @@ class TipsController extends JsonController
             $this->service->destroy($tip);
             $this->database->commit();
 
-            return $this->response()->ok(null);
+            return $this->response()->ok();
         } catch (ModelNotFoundException $exception) {
             return $this->response()->notFound($exception->getMessage());
         } catch (ModelWasNotDeleted $exception) {

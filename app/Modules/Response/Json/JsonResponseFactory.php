@@ -10,19 +10,19 @@ interface JsonResponseFactory
 {
     /**
      * Return 200 response
-     * @param null|string $message
      * @param array       $append
+     * @param null|string $message
      * @return IlluminateJsonResponse
      */
-    public function ok(?string $message, array $append = []): IlluminateJsonResponse;
+    public function ok(array $append = [], string $message = null): IlluminateJsonResponse;
 
     /**
      * Return 201 response
-     * @param null|string $message
      * @param array       $append
+     * @param null|string $message
      * @return IlluminateJsonResponse
      */
-    public function created(?string $message, array $append = []): IlluminateJsonResponse;
+    public function created(array $append = [], string $message = null): IlluminateJsonResponse;
 
     /**
      * Return 403 response
@@ -33,11 +33,11 @@ interface JsonResponseFactory
 
     /**
      * Return 422 response
-     * @param null|string $message
      * @param array       $append
+     * @param null|string $message
      * @return IlluminateJsonResponse
      */
-    public function unprocessableEntity(?string $message, array $append = []): IlluminateJsonResponse;
+    public function unprocessableEntity(array $append = [], string $message = null): IlluminateJsonResponse;
 
     /**
      * Return 401 response
