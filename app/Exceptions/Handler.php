@@ -4,8 +4,13 @@ namespace App\Exceptions;
 
 use App\Modules\Response\Json\JsonResponseFactory;
 use Exception;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\JsonResponse as IlluminateJsonResponse;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -52,10 +57,36 @@ class Handler extends ExceptionHandler
      * Render an exception into an HTTP response.
      * @param  \Illuminate\Http\Request $request
      * @param  \Exception               $exception
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|IlluminateJsonResponse
      */
     public function render($request, Exception $exception)
     {
+        if ($request->expectsJson()) {
+            return $this->jsonResponse($exception);
+        }
+
         return parent::render($request, $exception);
+    }
+
+    /**
+     * Return json representation of the exception
+     * @param Exception $exception
+     * @return IlluminateJsonResponse
+     */
+    private function jsonResponse(Exception $exception): IlluminateJsonResponse
+    {
+        if ($exception instanceof ValidationException) {
+            return $this->json->unprocessableEntity([
+                'validator' => $exception->validator->getMessageBag()
+            ], $exception->getMessage());
+        } elseif ($exception instanceof AuthenticationException) {
+            return $this->json->unauthorized($exception->getMessage());
+        } elseif ($exception instanceof NotFoundHttpException) {
+            return $this->json->notFound('Route does not exist.');
+        } elseif ($exception instanceof MethodNotAllowedHttpException) {
+            return $this->json->methodNotAllowed('Method not allowed on this route.');
+        }
+
+        return $this->json->internalError($exception->getMessage());
     }
 }
