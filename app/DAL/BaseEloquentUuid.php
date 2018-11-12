@@ -5,6 +5,7 @@ namespace App\DAL;
 
 
 use App\Models\Base\UuidModel;
+use App\Modules\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -26,15 +27,14 @@ class BaseEloquentUuid implements UuidRepository
         $this->query = $model;
     }
 
-    /**
-     * Return all data from database
-     * @param array $columns
-     * @param array $relations
-     * @return Collection
-     */
     public function all(array $columns = ['*'], array $relations = []): Collection
     {
         return $this->newQuery()->with($relations)->get($columns);
+    }
+
+    public function paginate(int $page, int $perPage = 20, array $columns = ['*']): Paginator
+    {
+        return new Paginator($this->newQuery()->paginate($perPage, $columns, 'page', $page), request());
     }
 
     /**

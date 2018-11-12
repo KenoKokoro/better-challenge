@@ -22,6 +22,12 @@ class TipService
 
     public function index(IndexRequest $request): Arrayable
     {
+        $options = $request->validated();
+
+        if ($options['paginate'] ?? false === true) {
+            return $this->repository->paginate($options['page'], $options['perPage']);
+        }
+
         return $this->repository->all();
     }
 }
