@@ -15,6 +15,7 @@ use Tests\TestCase;
 use V1\Http\Controllers\TipsController;
 use V1\Services\Tip\Requests\IndexRequest;
 use V1\Services\Tip\Requests\NewRequest;
+use V1\Services\Tip\Requests\UpdateRequest;
 
 class TipsControllerTest extends TestCase
 {
@@ -108,7 +109,7 @@ class TipsControllerTest extends TestCase
     {
         $request = new NewRequest();
         $request->setContainer($this->app);
-        
+
         $this->db->shouldReceive('beginTransaction')->once();
 
         $this->controller->store($request);
@@ -144,5 +145,53 @@ class TipsControllerTest extends TestCase
         $response = $this->controller->store($request);
 
         $this->assertEquals(201, $response->status());
+    }
+
+    /** @test */
+    public function tip_must_exists_in_order_to_update(): void
+    {
+        $request = new UpdateRequest(['title' => 'Hello World', 'description' => 'Hello from description as well']);
+        $request->setContainer($this->app);
+
+        $this->repository->shouldReceive('show')->with('missing-uuid')->once()
+                         ->andThrow((new ModelNotFoundException())->setModel(Tip::class));
+
+        $response = $this->controller->update('missing-uuid', $request);
+
+        $this->assertEquals(404, $response->status());
+    }
+
+    /**
+     * @expectedException \Illuminate\Validation\ValidationException
+     * @test
+     */
+    public function valid_data_should_be_provided_in_order_to_update_existing_tip(): void
+    {
+        $request = new UpdateRequest(['title' => str_random(256), 'description' => str_random(1001)]);
+        $request->setContainer($this->app);
+
+        $this->repository->shouldReceive('show')->with('existing-uuid')->once()->andReturn(new Tip());
+        $this->db->shouldReceive('beginTransaction')->once();
+
+        $this->controller->update('existing-uuid', $request);
+    }
+
+    /** @test */
+    public function existing_tip_with_valid_request_data_should_be_updated_successfully(): void
+    {
+        $attributes = ['title' => 'Hello world', 'description' => 'Hello world from description'];
+        $request = new UpdateRequest($attributes);
+        $request->setContainer($this->app);
+        $existingTip = new Tip();
+
+        $this->repository->shouldReceive('show')->with('existing-uuid')->once()->andReturn($existingTip);
+        $this->db->shouldReceive('beginTransaction')->once();
+        $this->repository->shouldReceive('model->getFillable')->andReturn(['title', 'description']);
+        $this->repository->shouldReceive('update')->with($existingTip, $attributes)->once()->andReturn(new Tip());
+        $this->db->shouldReceive('commit')->once();
+
+        $response = $this->controller->update('existing-uuid', $request);
+
+        $this->assertEquals(200, $response->status());
     }
 }

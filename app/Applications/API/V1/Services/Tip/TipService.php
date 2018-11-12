@@ -5,10 +5,12 @@ namespace V1\Services\Tip;
 
 
 use App\DAL\Contracts\TipRepository;
+use App\Models\Tip;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use V1\Services\Tip\Requests\IndexRequest;
 use V1\Services\Tip\Requests\NewRequest;
+use V1\Services\Tip\Requests\UpdateRequest;
 
 class TipService
 {
@@ -57,5 +59,12 @@ class TipService
     public function store(NewRequest $request): Arrayable
     {
         return $this->repository->create($request->validated());
+    }
+
+    public function update(Tip $tip, UpdateRequest $request): Arrayable
+    {
+        $attributes = array_only($request->validated(), $this->repository->model()->getFillable());
+
+        return $this->repository->update($tip, $attributes);
     }
 }

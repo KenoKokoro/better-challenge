@@ -42,4 +42,18 @@ interface UuidRepository
      * @return UuidModel
      */
     public function create(array $attributes): UuidModel;
+
+    /**
+     * Update existing model
+     * @param UuidModel $model
+     * @param array     $attributes
+     * @return UuidModel
+     */
+    public function update(UuidModel $model, array $attributes): UuidModel;
+
+    /**
+     * Return the injected model
+     * @return UuidModel
+     */
+    public function model(): UuidModel;
 }

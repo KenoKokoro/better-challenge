@@ -47,6 +47,18 @@ abstract class BaseEloquentUuid implements UuidRepository
         return $this->newQuery()->create($attributes);
     }
 
+    public function update(UuidModel $model, array $attributes): UuidModel
+    {
+        $model->update($attributes);
+
+        return $model->fresh();
+    }
+
+    public function model(): UuidModel
+    {
+        return $this->model;
+    }
+
     /**
      * Return new query instance
      * @return Builder
