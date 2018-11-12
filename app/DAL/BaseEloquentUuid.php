@@ -54,6 +54,11 @@ abstract class BaseEloquentUuid implements UuidRepository
         return $model->fresh();
     }
 
+    public function destroy(UuidModel $model): bool
+    {
+        return $model->delete();
+    }
+
     public function model(): UuidModel
     {
         return $this->model;

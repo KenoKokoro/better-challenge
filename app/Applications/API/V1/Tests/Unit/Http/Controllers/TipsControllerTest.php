@@ -7,6 +7,7 @@ namespace V1\Tests\Unit\Http\Controllers;
 use App\DAL\Contracts\TipRepository;
 use App\Models\Tip;
 use App\Modules\Pagination\Paginator;
+use Exception;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -191,6 +192,60 @@ class TipsControllerTest extends TestCase
         $this->db->shouldReceive('commit')->once();
 
         $response = $this->controller->update('existing-uuid', $request);
+
+        $this->assertEquals(200, $response->status());
+    }
+
+    /** @test */
+    public function it_requires_existing_tip_in_order_to_delete(): void
+    {
+        $this->repository->shouldReceive('show')->with('missing-uuid')->once()
+                         ->andThrow((new ModelNotFoundException())->setModel(Tip::class));
+
+        $response = $this->controller->destroy('missing-uuid');
+
+        $this->assertEquals(404, $response->status());
+    }
+
+    /** @test */
+    public function any_error_should_be_reported_if_the_deletion_fails_for_existing_tip(): void
+    {
+        $tip = new Tip();
+        $tip->guid = 'existing-uuid';
+        $this->repository->shouldReceive('show')->with('existing-uuid')->once()->andReturn($tip);
+        $this->db->shouldReceive('beginTransaction')->once();
+        $this->repository->shouldReceive('destroy')->once()->with($tip)->andThrow(new Exception());
+
+        $response = $this->controller->destroy('existing-uuid');
+
+        $this->assertEquals(500, $response->status());
+    }
+
+    /** @test */
+    public function non_true_response_from_database_should_not_delete_existing_tip(): void
+    {
+        $tip = new Tip();
+        $tip->guid = 'existing-uuid';
+        $this->repository->shouldReceive('show')->with('existing-uuid')->once()->andReturn($tip);
+        $this->db->shouldReceive('beginTransaction')->once();
+        $this->repository->shouldReceive('destroy')->once()->with($tip)->andReturn(false);
+
+        $response = $this->controller->destroy('existing-uuid');
+
+        $this->assertEquals(500, $response->status());
+    }
+
+    /** @test */
+    public function existing_tip_should_be_deleted_with_success(): void
+    {
+        $tip = new Tip();
+        $tip->guid = 'existing-uuid';
+        $this->repository->shouldReceive('show')->with('existing-uuid')->once()->andReturn($tip);
+        $this->db->shouldReceive('beginTransaction')->once();
+        $this->repository->shouldReceive('destroy')->once()->with($tip)->andReturn(true);
+        $this->db->shouldReceive('commit');
+
+        $response = $this->controller->destroy('existing-uuid');
 
         $this->assertEquals(200, $response->status());
     }

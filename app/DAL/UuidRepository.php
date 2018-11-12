@@ -52,6 +52,13 @@ interface UuidRepository
     public function update(UuidModel $model, array $attributes): UuidModel;
 
     /**
+     * @param UuidModel $model
+     * @return bool
+     * @throws \Exception
+     */
+    public function destroy(UuidModel $model): bool;
+
+    /**
      * Return the injected model
      * @return UuidModel
      */

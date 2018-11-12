@@ -10,6 +10,7 @@ use App\Modules\Response\Json\JsonResponseFactory;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse as IlluminateJsonResponse;
+use V1\Exceptions\ModelWasNotDeleted;
 use V1\Services\Tip\Requests\IndexRequest;
 use V1\Services\Tip\Requests\NewRequest;
 use V1\Services\Tip\Requests\UpdateRequest;
@@ -100,7 +101,26 @@ class TipsController extends JsonController
         }
     }
 
-    public function destroy(string $uuid)
+    /**
+     * Delete the existing model from database
+     * @param string $uuid
+     * @return IlluminateJsonResponse
+     * @throws \Exception
+     */
+    public function destroy(string $uuid): IlluminateJsonResponse
     {
+        try {
+            /** @var Tip $tip */
+            $tip = $this->service->show($uuid);
+            $this->database->beginTransaction();
+            $this->service->destroy($tip);
+            $this->database->commit();
+
+            return $this->response()->ok(null);
+        } catch (ModelNotFoundException $exception) {
+            return $this->response()->notFound($exception->getMessage());
+        } catch (ModelWasNotDeleted $exception) {
+            return $this->response()->internalError($exception->getMessage());
+        }
     }
 }
