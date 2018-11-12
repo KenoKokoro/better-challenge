@@ -7,6 +7,7 @@ namespace V1\Tests\Unit\Http\Controllers;
 use App\DAL\Contracts\TipRepository;
 use App\Models\Tip;
 use App\Modules\Pagination\Paginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -54,6 +55,27 @@ class TipsControllerTest extends TestCase
         );
 
         $response = $this->controller->index($request);
+
+        $this->assertEquals(200, $response->status());
+    }
+
+    /** @test */
+    public function not_found_response_should_be_returned_if_tip_does_not_exists_in_database(): void
+    {
+        $this->repository->shouldReceive('show')->with('missing-uuid')->once()
+                         ->andThrow((new ModelNotFoundException())->setModel(Tip::class));
+
+        $response = $this->controller->show('missing-uuid');
+
+        $this->assertEquals(404, $response->status());
+    }
+
+    /** @test */
+    public function existing_tip_in_database_should_be_returned_with_success(): void
+    {
+        $this->repository->shouldReceive('show')->with('existing-uuid')->once()->andReturn(new Tip());
+
+        $response = $this->controller->show('existing-uuid');
 
         $this->assertEquals(200, $response->status());
     }
