@@ -58,11 +58,11 @@ return [
 
         'testing' => [
             'driver' => 'mysql',
-            'host' => env('DB_HOST_TESTING', 'testing'),
+            'host' => env('DB_HOST', 'testing'),
             'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE_TESTING', 'testing'),
-            'username' => env('DB_USERNAME_TESTING', 'testing'),
-            'password' => env('DB_PASSWORD_TESTING', 'testing'),
+            'database' => env('DB_DATABASE', 'testing'),
+            'username' => env('DB_USERNAME', 'testing'),
+            'password' => env('DB_PASSWORD', 'testing'),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
