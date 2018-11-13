@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property string      guid
+ * @property string      guid_text Use this when accessing from object
  * @property string      title
  * @property string      description
  * @property Carbon      created_at
